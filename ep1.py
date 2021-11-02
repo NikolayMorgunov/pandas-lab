@@ -1,13 +1,7 @@
 import csv
 import pandas as pd
 import numpy as np
-
-
-def inting(x):
-    try:
-        return int(x)
-    except ValueError:
-        return x
+from inting import inting
 
 
 with open('transactions.csv', 'r') as f:
