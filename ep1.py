@@ -1,13 +1,22 @@
+import csv
 import pandas as pd
+import numpy as np
 
-# У нас есть какие-то данные табличного духа
-data = [[ 0.990360, -1.131429, -1.065981,  0.855488],
-        [ 0.493665,  0.589660, -0.432106, -0.240378],
-        [-0.807992, -1.794176, -1.210304,  0.201295],
-        [-0.270479, -1.121976,  0.459273, -0.178025],
-        [ 0.188286, -0.931686,  1.959219,  0.387350],
-        [ 2.252443,  0.848532,  0.925256,  1.014754]]
 
-# Из них можно создать DataFrame, дав колонкам имена
-df = pd.DataFrame(data, columns=list('ABCD'))
-print(df)
+def inting(x):
+    try:
+        return int(x)
+    except ValueError:
+        return x
+
+
+with open('transactions.csv', 'r') as f:
+    reader = np.array(list((csv.reader(f, delimiter=',', quotechar='\"'))))
+    df = pd.DataFrame(reader[1:], columns=reader[0]).filter(items=['CONTRACTOR', 'STATUS', 'SUM']).applymap(inting)
+    df_is_ok = df[df['STATUS'] == "OK"].sort_values(by=['SUM']).iloc[-3:, 0:].filter(items=['CONTRACTOR', 'SUM'])
+    print("3 самых крупных платежа:")
+    print(df_is_ok)
+
+    df_is_ok = df[df['STATUS'] == "OK"]
+    df_is_ok = df_is_ok[df_is_ok['CONTRACTOR'] == "Umbrella, Inc"]
+    print('В адрес Umbrella, Inc было переведено', df_is_ok['SUM'].sum())
