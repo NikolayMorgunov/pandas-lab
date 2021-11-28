@@ -9,7 +9,7 @@ with open('flights.csv', 'r') as f:
     df = pd.DataFrame(reader[1:], columns=reader[0]).filter(items=['CARGO', 'PRICE', 'WEIGHT'])
     df['PRICE'] = pd.to_numeric(df['PRICE'])
     df['WEIGHT'] = pd.to_numeric(df['WEIGHT'])
-    number = [1 for i in range(len(df))]
+    number = np.ones(len(df))
     df['NUMBER'] = number
     df = df.groupby('CARGO').sum()
 
