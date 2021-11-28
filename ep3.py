@@ -14,50 +14,27 @@ with open('results_ejudge.html', 'r') as html:
     tbl = re.sub('<a.*?href="(.*?)">(.*?)</a>', '\\1 \\2', html_text)
     results = pd.read_html(tbl)[0]
 
+logins = logins.rename(columns={'login': 'User'})
 
-facult_groups = defaultdict(list)
-inf_groups = defaultdict(list)
-clever_facult_groups = set()
-clever_inf_groups = set()
-for index, i in results.iterrows():
-    user = i['User']
-    solved = i['Solved']
-    G = i['G']
-    H = i['H']
-
-    if not logins[logins['login'] == user].empty:
-        facult_group = logins[logins['login'] == user]['group_faculty'].tolist()[0]
-        inf_group = logins[logins['login'] == user]['group_out'].tolist()[0]
-
-        facult_groups[facult_group].append(solved)
-        inf_groups[inf_group].append(solved)
-
-        if (pd.notna(G) and G > 10) or (pd.notna(H) and H > 10):
-            clever_facult_groups.add(facult_group)
-            clever_inf_groups.add(inf_group)
-
-
-facult_groups_bars = []
-facult_groups_data = []
-inf_groups_bars = []
-inf_groups_data = []
-for i in facult_groups.items():
-    facult_groups_bars.append(i[0])
-    facult_groups_data.append(sum(i[1]) / len(i[1]))
-
-for i in inf_groups.items():
-    inf_groups_bars.append(i[0])
-    inf_groups_data.append(sum(i[1]) / len(i[1]))
-
-print("Группы, студенты которых прошли более 1 теста в G и H:")
-print(*clever_facult_groups, sep='\n')
-print("Группы по информатике, студенты которых прошли более 1 теста в G и H:")
-print(*clever_inf_groups, sep='\n')
+data = results.merge(logins)
+mean_f_data = data.groupby('group_faculty').mean()
 
 fig, axs = plt.subplots(2, 1)
 axs[0].set_title("Solved per faculty group")
-axs[0].bar(facult_groups_bars, facult_groups_data, color='blue')
+axs[0].bar(mean_f_data.index[:], mean_f_data['Solved'], color='blue')
+
+mean_out_data = data.groupby('group_out').mean()
 
 axs[1].set_title("Solved per informatics group")
-axs[1].bar(inf_groups_bars, inf_groups_data, color='red')
+axs[1].bar(mean_out_data.index[:], mean_out_data['Solved'], color='red')
+
+clever_students = data[(data['G'] > 10) | (data['H'] > 10)]
+clever_facult_groups = clever_students.groupby('group_faculty').count().index[:]
+clever_inf_groups = clever_students.groupby('group_out').count().index[:]
+
+print("Группы, студенты которых прошли более 1 теста в G и H:")
+print(*clever_facult_groups, sep=', ')
+print("Группы по информатике, студенты которых прошли более 1 теста в G и H:")
+print(*clever_inf_groups, sep=', ')
+
 plt.show()
